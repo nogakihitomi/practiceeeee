@@ -191,6 +191,14 @@ class ProductController extends Controller
         if ($request->filled('max_price')) {
             $query->where('price', '<=', $request->max_price);
         }
+
+        if ($request->filled('min_stock')) {
+            $query->where('stock', '>=', $request->min_stock);
+        }
+    
+        if ($request->filled('max_stock')) {
+            $query->where('stock', '<=', $request->max_stock);
+        }
     
         $products = $query->with('company')->get();
         

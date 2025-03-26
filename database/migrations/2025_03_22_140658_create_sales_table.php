@@ -15,10 +15,10 @@ class CreateSalesTable extends Migration
     {
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->integer('quantity')->default(1);
-            $table->decimal('total_price', 10, 2)->default(0.00);
+            $table->unsignedBigInteger('product_id');
             $table->timestamps();
+            $table->integer('quantity')->default(1);
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
         });
     }
 

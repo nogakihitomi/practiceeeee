@@ -10,7 +10,12 @@ class Sale extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['product_id', 'quantity', 'total_price'];
+    protected $fillable = ['product_id', 'quantity', 'price'];
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
 
 
     public static function executeSale(int $productId, int $quantity): array

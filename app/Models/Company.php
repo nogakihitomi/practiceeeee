@@ -1,12 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Models;
 
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Foundation\Validation\ValidatesRequests;
-use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class Controller extends BaseController
+class Company extends Model
 {
-    use AuthorizesRequests, ValidatesRequests;
+    
+    use HasFactory;
+
+    public function products()
+    {
+    return $this->hasMany(Product::class);
+    }
+
+    
 }

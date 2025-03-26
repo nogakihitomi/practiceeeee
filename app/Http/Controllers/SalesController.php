@@ -7,6 +7,8 @@ use App\Models\Sale;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+
 
 class SalesController extends Controller
 {
@@ -33,42 +35,41 @@ class SalesController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
         Log::info('受信したリクエストデータ:', $request->all());
+        
         try {
-            $request->validate([
+            $validated = $request->validate([
                 'product_id' => 'required|exists:products,id',
                 'quantity' => 'required|integer|min:1',
             ]);
-    
-            return DB::transaction(function () use ($request) {
-                $product = Product::findOrFail($request->product_id);
-    
-                if ($product->stock < $request->quantity) {
-                    return response()->json(['message' => '在庫が不足しています。'], 400);
-                }
-    
-                $product->decrement('stock', $request->quantity);
-    
-                $sale = Sale::create([
-                    'product_id' => $request->product_id,
-                    'quantity' => $request->quantity,
-                    'total_price' => $product->price * $request->quantity, 
-                ]);
-    
-                return response()->json([
-                    'message' => '購入が完了しました。',
-                    'sale' => $sale
-                ], 201);
-            });
-    
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['error' => '入力データが不正です', 'details' => $e->errors()], 422);
-        } catch (\Illuminate\Database\QueryException $e) {
-            return response()->json(['error' => 'データベースエラー', 'details' => $e->getMessage()], 500);
+
+            $product = Product::findOrFail($validated['product_id']);
+
+            if ($product->stock < $validated['quantity']) {
+                return response()->json(['error' => '在庫が不足しています。'], 400);
+            }
+
+            $product->decrement('stock', $validated['quantity']);
+
+            Sale::create([
+                'product_id' => $validated['product_id'],
+                'quantity' => $validated['quantity'],
+            ]);
+
+            DB::commit();  // トランザクションのコミット
+
+            return response()->json([
+                'message' => '購入が完了しました。',
+                'remaining_stock' => $product->stock
+            ], 200);
+
         } catch (\Exception $e) {
+            DB::rollBack(); // エラーが発生した場合、ロールバック
+            Log::error("購入処理中にエラーが発生しました: " . $e->getMessage());
             return response()->json(['error' => 'サーバーエラー', 'details' => $e->getMessage()], 500);
         }
-    }
+        }
 
     /**
      * Display the specified resource.
