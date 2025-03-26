@@ -57,7 +57,7 @@ class SalesController extends Controller
                 'quantity' => $validated['quantity'],
             ]);
 
-            DB::commit();  // トランザクションのコミット
+            DB::commit(); 
 
             return response()->json([
                 'message' => '購入が完了しました。',
@@ -65,7 +65,7 @@ class SalesController extends Controller
             ], 200);
 
         } catch (\Exception $e) {
-            DB::rollBack(); // エラーが発生した場合、ロールバック
+            DB::rollBack(); 
             Log::error("購入処理中にエラーが発生しました: " . $e->getMessage());
             return response()->json(['error' => 'サーバーエラー', 'details' => $e->getMessage()], 500);
         }

@@ -161,20 +161,18 @@
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".sale-form").forEach((form) => {
         form.addEventListener("submit", function (e) {
-            e.preventDefault(); // フォームの通常送信をキャンセル
+            e.preventDefault();
 
             let formData = new FormData(this);
-            let productId = formData.get("product_id"); // 商品ID
-            let quantity = formData.get("quantity");   // 購入数量
+            let productId = formData.get("product_id");
+            let quantity = formData.get("quantity");
 
-            // コンソールで送信するデータを確認
             console.log("送信データ:", { product_id: productId, quantity: quantity });
 
-            // Fetch API を使用して POST リクエストを送信
             fetch('http://localhost:8000/api/sales', {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json", // JSONとして送信
+                    "Content-Type": "application/json", 
                     "Accept": "application/json"
                 },
                 body: JSON.stringify({
@@ -199,7 +197,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
             })
             .catch(error => {
-                console.error("エラー:", error); // エラー時のログ
+                console.error("エラー:", error); 
                 alert("購入処理中にエラーが発生しました。");
             });
         });
@@ -217,7 +215,7 @@ $(".delete-button").on("click", function () {
                             dataType: "json",
                             success: function(response) {
                                 if (response.message) {
-                                    $("#sale-" + saleId).fadeOut(500, function () { // 削除成功時にフェードアウト
+                                    $("#sale-" + saleId).fadeOut(500, function () {
                                     $(this).remove();
                                 });
                             } else {
