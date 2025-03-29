@@ -55,14 +55,15 @@
 
 <script>
         $(document).ready(function() {
-            $('#search').on('input', function() {
+            $('button[type="submit"]').on('click', function(e) {
+                e.preventDefault();
 
-                let searchKeyword = $('#search-keyword').val();
-                let searchCompany = $('#search-company').val();
-                let minPrice = $('#min-price').val();
-                let maxPrice = $('#max-price').val();
-                let minStock = $('#min-stock').val();
-                let maxStock = $('#max-stock').val();
+                let searchKeyword = $('input[name="search"]').val();
+                let searchCompany = $('select[name="search-company"]').val();
+                let minPrice = $('input[name="min_price"]').val();
+                let maxPrice = $('input[name="max_price"]').val();
+                let minStock = $('input[name="min_stock"]').val();
+                let maxStock = $('input[name="max_stock"]').val();
 
                 $.ajax({
                     url: '{{ route('search') }}',
@@ -146,68 +147,13 @@
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger btn-sm mx-1 delete-btn" data-id="{{ $product->id }}">削除</button>
                         </form>
-                        
-                        <form class="sale-form mt-2">
-                            @csrf
-                            <input type="hidden" name="product_id" value="{{ $product->id }}">
-                            <input type="number" name="quantity" value="1" min="1" max="{{ $product->stock }}" class="form-control d-inline-block w-25">
-                            <button type="submit" class="btn btn-success btn-sm mx-1 sale-button" data-product-id="{{ $product->id }}">購入</button>
-                            </form>
                     </td>
                 </tr>
             @endforeach
 
             <script>
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".sale-form").forEach((form) => {
-        form.addEventListener("submit", function (e) {
-            e.preventDefault();
-
-            let formData = new FormData(this);
-            let productId = formData.get("product_id");
-            let quantity = formData.get("quantity");
-
-            console.log("送信データ:", { product_id: productId, quantity: quantity });
-
-            fetch('http://localhost:8000/api/sales', {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json", 
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify({
-                    product_id: productId,
-                    quantity: quantity
-                })
-            })
-            .then(response => {
-    if (!response.ok) {
-        throw new Error('サーバーエラーが発生しました');
-    }
-    return response.json();
-})
-.then(data => {
-    console.log("サーバー応答:", data);
-    if (data.message) {
-        alert(data.message);
-        location.reload();
-
-    } else {
-        alert("購入に失敗しました。");
-    }
-            })
-            .catch(error => {
-                console.error("エラー:", error); 
-                alert("購入処理中にエラーが発生しました。");
-            });
-        });
-    });
-});
-</script>
-
-            <script>
-$(".delete-button").on("click", function () {
-    let saleId = $(this).data("id");
+            $(".delete-button").on("click", function () {
+                let saleId = $(this).data("id");
 
                         $.ajax({
                             url: `http://localhost:8000/api/sales/${saleId}`,
