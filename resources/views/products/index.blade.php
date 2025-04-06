@@ -48,47 +48,78 @@
 
 
         <div class="col-sm-12 col-md-1">
-            <button class="btn btn-outline-secondary" type="submit">検索</button>
+        <button class="btn btn-outline-secondary search-button" type="submit">検索</button>
         </div>
         </form>
 </div>
 
 <script>
-        $(document).ready(function() {
-            $('button[type="submit"]').on('click', function(e) {
-                e.preventDefault();
 
+            let searchParams = {};
+
+            $('.search-button').on('click', function(e) {
+                e.preventDefault();
+                performSearch();
+            });
+
+            $('.sort-column').on('click', function() {
+                let sortBy = $(this).data('sort');
+                let sortOrder = $(this).hasClass('asc') ? 'desc' : 'asc';
+                
+                $('.sort-column').removeClass('asc desc');
+                $(this).addClass(sortOrder);
+        
+ 
+                searchParams.sort_by = sortBy;
+                searchParams.sort_order = sortOrder;
+        
+                performSearch();
+            });
+
+
+            function performSearch() {
                 let searchKeyword = $('input[name="search"]').val();
-                let searchCompany = $('select[name="search-company"]').val();
+                let searchCompany = $('select[name="search_company"]').val();
                 let minPrice = $('input[name="min_price"]').val();
                 let maxPrice = $('input[name="max_price"]').val();
                 let minStock = $('input[name="min_stock"]').val();
                 let maxStock = $('input[name="max_stock"]').val();
 
+                let requestData = {
+                    search: searchKeyword,
+                    search_company: searchCompany,
+                    min_price: minPrice,
+                    max_price: maxPrice,
+                    min_stock: minStock,
+                    max_stock: maxStock,
+                    ...searchParams 
+                };
+
                 $.ajax({
                     url: '{{ route('search') }}',
                     method: 'GET',
-                    data: {
-                        search: searchKeyword,
-                        search_company: searchCompany,
-                        min_price: minPrice,
-                        max_price: maxPrice,
-                        min_stock: minStock,
-                        max_stock: maxStock,
-                    },
+                    data: requestData,
                         dataType: 'json',
                         success: function (response) {
                             let resultsHtml = '';
                             if (response.length > 0) {
                                 response.forEach(function (product) {
                                     resultsHtml += `
-                                    <tr>
+                                    <tr id="product-${product.id}">
                                     <td>${product.id}</td>
                                     <td><img src="${product.img_path}" alt="${product.product_name}" width="100"></td>
                                     <td>${product.product_name}</td>
                                     <td>${product.price}</td>
                                     <td>${product.stock}</td>
                                     <td>${product.company_name}</td>
+                                    <td>
+                                    <a href="/products/${product.id}" class="btn btn-info btn-sm mx-1">詳細</a>
+                                    <form method="POST" class="d-inline delete-form" data-id="${product.id}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="button" class="btn btn-danger btn-sm delete-button">削除</button>
+                                    </form>
+                                    </td>
                                     </tr>
                                     `;
                                 });
@@ -127,7 +158,7 @@
             </thead>
             <tbody id="search-results">
             @foreach ($products as $product)
-                <tr>
+                <tr id="product-{{ $product->id }}">
                     <td>{{ $product->id }}</td>
                     <td>
                     @if ($product->img_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($product->img_path))
@@ -142,35 +173,42 @@
                     <td>{{ $product->company->company_name }}</td>
                     <td>
                         <a href="{{ route('products.show', $product) }}" class="btn btn-info btn-sm mx-1">詳細</a>                       
-                         <form method="POST" action="{{ route('products.destroy', $product) }}" class="d-inline">
+                        <form method="POST" class="d-inline delete-form" data-id="{{ $product->id }}">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm mx-1 delete-btn" data-id="{{ $product->id }}">削除</button>
+                            <button type="button" class="btn btn-danger btn-sm delete-button">削除</button>
                         </form>
                     </td>
                 </tr>
             @endforeach
 
             <script>
-            $(".delete-button").on("click", function () {
-                let saleId = $(this).data("id");
+            $(document).ready(function () {
+                $(document).on('click', '.delete-button', function () {
+                    if (!confirm('本当に削除しますか？')) return;
+                    
+                    const form = $(this).closest('.delete-form');
+                    const productId = form.data('id');
+                    const token = form.find('input[name="_token"]').val();
 
                         $.ajax({
-                            url: `http://localhost:8000/api/sales/${saleId}`,
-                            method: 'DELETE',
+                            url: `{{ url('/products') }}/${productId}`,
+                            method: 'POST',
+                            data: {
+                                _method: 'DELETE',
+                                _token: token
+                            },
                             dataType: "json",
-                            success: function(response) {
-                                if (response.message) {
-                                    $("#sale-" + saleId).fadeOut(500, function () {
+                            success: function () {
+                                alert('商品を削除しました');
+                                $(`#product-${productId}`).fadeOut(300, function () {
                                     $(this).remove();
                                 });
-                            } else {
-                                alert("削除に失敗しました");
+                            },
+                            error: function (xhr) {
+                                alert('削除に失敗しました: ' + xhr.responseText);
                             }
-                        },
-                        error: function (xhr) {
-                            alert("削除エラー: " + xhr.responseJSON.error);
-                        }
+                        });
                     });
                 });
             </script>

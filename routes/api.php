@@ -22,11 +22,11 @@ use Illuminate\Http\Request;
 
 
 Route::prefix('sales')->group(function () {
-    Route::get('/', [SalesController::class, 'index']); // すべての販売データを取得
-    Route::post('/', [SalesController::class, 'store']); // 新しい販売データを作成
-    Route::get('/{id}', [SalesController::class, 'show']); // 特定の販売データを取得
-    Route::put('/{id}', [SalesController::class, 'update']); // 販売データを更新
-    Route::delete('/{id}', [SalesController::class, 'destroy']); // 販売データを削除
+    Route::get('/', [SalesController::class, 'index']); 
+    Route::post('/', [SalesController::class, 'store']); 
+    Route::get('/{id}', [SalesController::class, 'show']); 
+    Route::put('/{id}', [SalesController::class, 'update']); 
+    Route::delete('/{id}', [SalesController::class, 'destroy']);
 });
 
 Route::delete('/products/{id}', [ProductController::class, 'destroy']); 
